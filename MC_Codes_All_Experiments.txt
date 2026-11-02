@@ -1,0 +1,1475 @@
+====================================================================
+ MICROCONTROLLER (MC) LAB  -  ALL EXPERIMENT CODES
+ Pune Institute of Computer Technology, Pune - 411043
+ Department of Electronics & Telecommunication Engineering
+ T.E. (E&TC)  2024-2025
+====================================================================
+
+Source: Google Drive folder "MC Codes"
+  - Experiment numbers & titles taken from the lab PDFs (lab1-lab8, Exp9)
+  - Program code taken from MC_Codes_8051.docx and MC_Codes_PIC.docx
+
+CONTENTS
+--------------------------------------------------------------------
+ PART A - 8051 / 89C51
+   Experiment 1 : Memory Block Transfer & 16-bit Arithmetic
+   Experiment 2 : Interfacing LEDs with 8051
+   Experiment 3 : Interfacing DAC with 89C51
+   Experiment 4 : Interfacing Stepper Motor with 89C51
+ PART B - PIC 18F4550
+   Experiment 5 : Interfacing Push buttons, LEDs, Relay & Buzzer
+   Experiment 6 : Generation of Square Wave using Timer with Interrupt
+   Experiment 7 : LCD Interfacing
+   Experiment 8 : Generation of PWM & Interfacing DC Motor
+   Experiment 9 : On-chip ADC Programming
+====================================================================
+
+
+
+####################################################################
+ PART A  -  8051 / 89C51
+####################################################################
+
+
+====================================================================
+ EXPERIMENT 1 : MEMORY BLOCK TRANSFER & 16-BIT ARITHMETIC
+====================================================================
+
+--------------------------------------------------------------------
+ 1A] Addition of two 16-bit numbers
+     (1208H + A56DH, result in RAM 50H/51H, carry in 52H)
+--------------------------------------------------------------------
+ORG 00H
+CLR C
+MOV A, #08H
+ADD A, #6DH
+MOV 50H, A
+
+MOV A, #12H
+ADDC A, #A5H
+MOV 51H, A
+MOV 52H, C
+END
+
+--------------------------------------------------------------------
+ 1B] Subtraction of two 16-bit numbers
+     (55ACH - 1234H = 4378H)
+--------------------------------------------------------------------
+ORG 00H
+CLR C
+MOV A, #ACH
+SUBB A, #34H
+MOV 50H, A
+
+MOV A, #55H
+SUBB A, #12H
+MOV 51H, A
+MOV 52H, C
+END
+
+--------------------------------------------------------------------
+ 1C] Non-overlapping block transfer
+     (10 bytes from 20H to 40H onwards)
+--------------------------------------------------------------------
+ORG 00H
+MOV R2, #0AH
+MOV R0, #20H
+MOV R1, #40H
+loop : MOV A, @R0
+MOV @R1, A
+INC R0
+INC R1
+DJNZ R2, loop
+END
+
+--------------------------------------------------------------------
+ 1D] Overlapping block transfer
+     (10 bytes from 20H to 25H onwards)
+--------------------------------------------------------------------
+ORG 00H
+MOV R2, #0AH
+MOV R0, #29H
+MOV R1, #2EH
+loop : MOV A, @R0
+MOV @R1, A
+DEC R0
+DEC R1
+DJNZ R2, loop
+END
+
+
+
+====================================================================
+ EXPERIMENT 2 : INTERFACING LEDs WITH 8051
+====================================================================
+
+--------------------------------------------------------------------
+ 2A] Toggle all LEDs on port P2 continuously with 100 ms delay
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ while(1)
+ {
+   P2 = 0XFF;
+   msdelay(100);
+   P2 = 0X00;
+   msdelay(100);
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  { }
+ }
+}
+
+--------------------------------------------------------------------
+ 2B] UP hex counter (00 to FF) on PORT2
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ unsigned int z;
+ while(1)
+ {
+  for(z=0;z<=255;z++)
+  {
+   P2=z;
+   msdelay(500);
+  }
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  { }
+ }
+}
+
+--------------------------------------------------------------------
+ 2C] DOWN hex counter (FF to 00) on PORT2
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ unsigned int z;
+ while(1)
+ {
+  for(z=255;z>=0;z--)
+  {
+   P2=z;
+   msdelay(500);
+  }
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  { }
+ }
+}
+
+--------------------------------------------------------------------
+ 2D] UP BCD counter (two digits) on PORT2
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ unsigned int x,y;
+ while(1)
+ {
+  for(x=0;x<=9;x++)
+  {
+    for(y=0;y<=9;y++)
+    {
+      P2=(x<<4)|y;
+      msdelay(500);
+    }
+  }
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  {}
+ }
+}
+
+--------------------------------------------------------------------
+ 2E] DOWN BCD counter (two digits) on PORT2
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ unsigned int x,y;
+ while(1)
+ {
+  for(x=9;x>=0;x--)
+  {
+    for(y=9;y>=0;y--)
+    {
+      P2=(x<<4)|y;
+      msdelay(500);
+    }
+  }
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  {}
+ }
+}
+
+--------------------------------------------------------------------
+ 2F] Display ASCII values 'A' to 'Z' on LEDs (PORT2)
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ unsigned int z;
+ while(1)
+ {
+  for(z='A';z<='Z';z++)
+  {
+   P2=z;
+   msdelay(500);
+  }
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  {}
+ }
+}
+
+
+
+====================================================================
+ EXPERIMENT 3 : INTERFACING DAC 0808 WITH 89C51
+====================================================================
+
+--------------------------------------------------------------------
+ 3A] Square wave
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+ while(1)
+ {
+   P1 = 0X00;
+   msdelay(500);
+   P1 = 0XFF;
+   msdelay(500);
+ }
+}
+void msdelay(unsigned int itime)
+{
+ unsigned int i,j;
+ for(i=0;i<itime;i++)
+ {
+  for(j=0;j<1275;j++)
+  {}
+ }
+}
+
+--------------------------------------------------------------------
+ 3B] Sine wave
+--------------------------------------------------------------------
+#include<reg51.h>
+void main(void)
+{
+ unsigned char sinvalue[12] = {128,192,238,255,238,192,128,64,17,0,17,64};
+ unsigned char i;
+ while(1)
+ {
+   for(i=0;i<12;i++)
+   {
+     P1 = sinvalue[i];
+   }
+ }
+}
+
+--------------------------------------------------------------------
+ 3C] Triangular wave
+--------------------------------------------------------------------
+#include<reg51.h>
+void main(void)
+{
+ unsigned int x,y;
+ while(1)
+ {
+   for(x=0;x<255;x++)
+   {
+     P1 = x;
+   }
+   for(y=255;y>0;y--)
+   {
+     P1 = y;
+   }
+ }
+}
+
+
+
+====================================================================
+ EXPERIMENT 4 : INTERFACING STEPPER MOTOR WITH 89C51
+====================================================================
+
+--------------------------------------------------------------------
+ 4A] Clockwise direction (continuous)
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+  while(1)
+  {
+          P1 = 0X06;
+          msdelay(500);
+          P1 = 0X0C;
+          msdelay(500);
+          P1 = 0X09;
+          msdelay(500);
+          P1 = 0X03;
+          msdelay(500);
+  }
+}
+void msdelay(unsigned int time)
+{
+  unsigned int i,j;
+  for(i=0;i<time;i++)
+  {
+    for(j=0;j<1275;j++)
+    {}
+  }
+}
+
+--------------------------------------------------------------------
+ 4B] Anticlockwise direction (continuous)
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+  while(1)
+  {
+         P1 = 0X03;
+         msdelay(500);
+         P1 = 0X09;
+         msdelay(500);
+         P1 = 0X0C;
+         msdelay(500);
+         P1 = 0X06;
+         msdelay(500);
+  }
+}
+void msdelay(unsigned int time)
+{
+  unsigned int i,j;
+  for(i=0;i<time;i++)
+  {
+    for(j=0;j<1275;j++)
+    {}
+  }
+}
+
+--------------------------------------------------------------------
+ 4C] Rotate through 90 degrees
+     Step angle = 7.5 ;  Count = 90/(7.5*4) = 3
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+  unsigned int k;
+  for(k=0;k<3;k++)
+  {
+     P1 = 0X06;
+     msdelay(500);
+     P1 = 0X0C;
+     msdelay(500);
+     P1 = 0X09;
+     msdelay(500);
+     P1 = 0X03;
+     msdelay(500);
+  }
+  while(1);
+}
+void msdelay(unsigned int time)
+{
+  unsigned int i,j;
+  for(i=0;i<time;i++)
+  {
+    for(j=0;j<1275;j++)
+    {}
+  }
+}
+
+--------------------------------------------------------------------
+ 4D] Rotate through 180 degrees
+     Step angle = 7.5 ;  Count = 180/(7.5*4) = 6
+--------------------------------------------------------------------
+#include<reg51.h>
+void msdelay(unsigned int);
+void main(void)
+{
+  unsigned int k;
+  for(k=0;k<6;k++)
+  {
+     P1 = 0X06;
+     msdelay(500);
+     P1 = 0X0C;
+     msdelay(500);
+     P1 = 0X09;
+     msdelay(500);
+     P1 = 0X03;
+     msdelay(500);
+  }
+  while(1);
+}
+void msdelay(unsigned int time)
+{
+  unsigned int i,j;
+  for(i=0;i<time;i++)
+  {
+    for(j=0;j<1275;j++)
+    {}
+  }
+}
+
+
+
+####################################################################
+ PART B  -  PIC 18F4550
+####################################################################
+
+
+====================================================================
+ EXPERIMENT 5 : INTERFACING PUSH BUTTONS, LEDs, RELAY & BUZZER
+====================================================================
+
+--------------------------------------------------------------------
+ 5A] SW0 -> LEDs chase left-to-right ; SW1 -> LEDs chase right-to-left
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<710;j++);
+}
+}
+void main(void)
+{
+unsigned int i;
+unsigned char val=0;
+INTCON2bits.RBPU = 0;
+ADCON1=0x0F;
+TRISD = 0x00;
+TRISBbits.TRISB0=1;
+TRISBbits.TRISB1=1;
+while(1)
+{
+if(PORTBbits.RB1==0)
+{
+val=1;
+}
+if(PORTBbits.RB0==0)
+{
+val=2;
+}
+if(val==1)
+{
+PORTD = 0x80;
+delay(100);
+for(i=0;i<8;i++)
+{
+PORTD=PORTD>>1;
+delay(100);
+}
+}
+if(val==2)
+{
+PORTD = 0x01;
+delay(100);
+for(i=0;i<8;i++)
+{
+PORTD=PORTD<<1;
+delay(100);
+}
+}
+}
+}
+
+--------------------------------------------------------------------
+ 5B] SW0 -> relay & buzzer ON ; SW1 -> relay & buzzer OFF + flash LEDs
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<710;j++);
+}
+}
+void main(void)
+{
+unsigned char val=0;
+INTCON2bits.RBPU = 0;
+ADCON1=0x0F;
+TRISD = 0x00;
+TRISBbits.TRISB0=1;
+TRISBbits.TRISB1=1;
+TRISCbits.TRISC1=0;
+TRISCbits.TRISC2=0;
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+while(1)
+{
+if(PORTBbits.RB1==0)
+{
+val=1;
+}
+if(PORTBbits.RB0==0)
+{
+val=2;
+}
+if(val==1)
+{
+PORTCbits.RC1=1;
+PORTCbits.RC2=1;
+}
+if(val==2)
+{
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+PORTD = 0x55;
+delay(100);
+PORTD = 0xAA;
+delay(100);
+}
+}
+}
+
+--------------------------------------------------------------------
+ 5C] SW0 -> relay+buzzer ON & LEDs chase L-to-R ;
+     SW1 -> relay+buzzer OFF & LEDs chase R-to-L   (Code from Kale ma'am)
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<710;j++);
+}
+}
+void main(void)
+{
+unsigned int i;
+unsigned char val=0;
+INTCON2bits.RBPU = 0;
+ADCON1=0x0F;
+TRISD = 0x00;
+TRISBbits.TRISB0=1;
+TRISBbits.TRISB1=1;
+TRISCbits.TRISC1=0;
+TRISCbits.TRISC2=0;
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+while(1)
+{
+if(PORTBbits.RB1==0)
+{
+val=1;
+}
+if(PORTBbits.RB0==0)
+{
+val=2;
+}
+if(val==1)
+{
+PORTCbits.RC1=1;
+PORTCbits.RC2=1;
+PORTD = 0x80;
+delay(100);
+for(i=0;i<8;i++)
+{
+PORTD=PORTD>>1;
+delay(100);
+}
+}
+if(val==2)
+{
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+PORTD = 0x01;
+delay(100);
+for(i=0;i<8;i++)
+{
+PORTD=PORTD<<1;
+delay(100);
+}
+}
+}
+}
+
+--------------------------------------------------------------------
+ 5C-ALT] Same spec - Code from Turuk ma'am (fully commented version)
+--------------------------------------------------------------------
+//Includes
+#include <p18f4550.h>                   //Include Controller specific .h
+#include "vector_relocate.h"            //Vector Remapping for USB HID Bootloader
+//Declarations
+#define lrbit PORTBbits.RB1             //SW0 interfaced to RB1
+#define rlbit PORTBbits.RB0             //SW1 interfaced to RB0
+#define buzzer PORTCbits.RC2            //Buzzer interfaced to RC2
+#define relay PORTDbits.RD7             //Relay interfaced to RC1
+
+//Function Prototypes
+void msdelay (unsigned int time);       //Function for delay
+//Start of Program Code
+void main()        //Main Program
+{
+ unsigned char i,val=0;        //Variable to latch the switch condition
+ INTCON2bits.RBPU=0;           //To Activate the internal pull on PORTB
+ ADCON1 = 0x0F;                //To disable the all analog inputs
+ TRISBbits.RB0=1;             //To configure RB0 as input for sensing SW1
+ TRISBbits.RB1=1;             //To configure RB1 as input for sensing SW0
+ TRISDbits.TRISD7=0;          //To configure RC1 (relay) as output
+ TRISCbits.TRISC2=0;          //To configure RC2 (buzzer) as output
+ TRISA = 0x00;                //To configure PORTD (LED) as output
+
+ PORTA = 0x00;                //Initial Value for LED
+ buzzer = 0;                  //Initial Value for Buzzer
+ relay = 0;                   //Initial Value for Relay
+while (1)                     //While loop for repeated operation
+ {
+ if (lrbit==0)        //To check whether SW0 is pressed
+val = 1;              // Latch the status of switch SW0
+ if (rlbit==0)        //To check whether SW1 is pressed
+ val = 2;             // Latch the status of switch SW1
+
+ if (val == 1)
+ {
+ buzzer = 1;
+ relay = 1;
+ // 6led
+ // 0010 0000
+ PORTA = 0x20;
+ msdelay(50);
+ for(i=0;i<6;i++)
+ {
+ PORTA = PORTA >> 1;       //Shift right by 1 bit
+ msdelay(50);              // Make the MSB bit equal to 1
+ }
+ }
+ if (val == 2)
+ {
+ buzzer = 0;
+ relay = 0;
+ PORTA = 0x01;
+ // 0000 0001
+ msdelay(50);
+ for(i=0;i<6;i++)
+ {
+ PORTA = PORTA << 1;     //Shift left by 1 bit
+ msdelay(50);            //Make the MSB bit equal to 1
+ }
+ }
+ }
+}
+//End of the Program
+//Function Definitions
+void msdelay (unsigned int time)            //Function for delay
+{
+unsigned int i, j;
+ for (i = 0; i < time; i++)
+{
+ for (j = 0; j < 710; j++);          //Calibrated for a 1 ms delay in MPLAB
+                }
+}
+
+--------------------------------------------------------------------
+ 5D] SW0 -> relay+buzzer ON & LEDs blink ;
+     SW1 -> relay+buzzer OFF & LEDs chase L-to-R in groups of two
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<710;j++);
+}
+}
+void main(void)
+{
+unsigned int i;
+unsigned char val=0;
+INTCON2bits.RBPU = 0;
+ADCON1=0x0F;
+TRISD = 0x00;
+TRISBbits.TRISB0=1;
+TRISBbits.TRISB1=1;
+TRISCbits.TRISC1=0;
+TRISCbits.TRISC2=0;
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+while(1)
+{
+if(PORTBbits.RB1==0)
+{
+val=1;
+}
+if(PORTBbits.RB0==0)
+{
+val=2;
+}
+if(val==1)
+{
+PORTCbits.RC1=1;
+PORTCbits.RC2=1;
+PORTD = 0xFF;
+delay(100);
+PORTD = 0x00;
+delay(100);
+}
+if(val==2)
+{
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+PORTD = 0xC0;           //1100 0000
+delay(100);
+PORTD = 0x30;           //0011 0000
+delay(100);
+PORTD = 0x0C;           //0000 1100
+delay(100);
+PORTD = 0x03;           //0000 0011
+delay(100);
+}
+}
+}
+
+--------------------------------------------------------------------
+ 5E] SW0 -> relay+buzzer ON & LEDs blink alternately ;
+     SW1 -> relay+buzzer OFF & LEDs chase L-to-R in groups of four
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<710;j++);
+}
+}
+void main(void)
+{
+unsigned int i;
+unsigned char val=0;
+INTCON2bits.RBPU = 0;
+ADCON1=0x0F;
+TRISD = 0x00;
+TRISBbits.TRISB0=1;
+TRISBbits.TRISB1=1;
+TRISCbits.TRISC1=0;
+TRISCbits.TRISC2=0;
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+while(1)
+{
+if(PORTBbits.RB1==0)
+{
+val=1;
+}
+if(PORTBbits.RB0==0)
+{
+val=2;
+}
+if(val==1)
+{
+PORTCbits.RC1=1;
+PORTCbits.RC2=1;
+PORTD = 0xFF;
+delay(100);
+PORTD = 0x00;
+delay(100);
+}
+if(val==2)
+{
+PORTCbits.RC1=0;
+PORTCbits.RC2=0;
+PORTD = 0xF0;           //1111 0000
+delay(100);
+PORTD = 0x0F;           //0000 1111
+delay(100);
+}
+}
+}
+
+--------------------------------------------------------------------
+ 5F] Interfacing an array of 8 LEDs - LED flashing
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void delay(unsigned int time)
+{
+unsigned int i,j;
+for(i=0;i<time;i++)
+{
+for(j=0;j<710;j++);
+}
+}
+void main(void)
+{
+ADCON1=0x0F;
+TRISD = 0x00;
+while(1)
+{
+PORTD = 0x55;
+delay(100);
+PORTD = 0xAA;
+delay(100);
+}
+}
+
+
+
+====================================================================
+ EXPERIMENT 6 : GENERATION OF SQUARE WAVE USING TIMER0 WITH INTERRUPT
+====================================================================
+
+--------------------------------------------------------------------
+ 6A] Square wave of 10 Hz (Timer0 interrupt) + blink LEDs after 50 ms
+     Fosc=48MHz, N=16, F=10Hz, T=50ms
+     x = T/(4*N*Tosc) = 37594
+     Count = 65535 + 1 - x = 27942  ->  0x6D26
+--------------------------------------------------------------------
+#include <p18f4550.h>
+extern void _startup (void);
+void timer_isr(void);
+#pragma code RESET_INTERRUPT_VECTOR = 0x1000
+void _reset (void)
+{
+	_asm
+    	             goto _startup
+	_endasm
+}
+#pragma code
+void main(void)
+{
+	ADCON1 = 0x0F;
+	INTCON2bits.RBPU=0;
+	TRISBbits.TRISB0 = 0;
+                TRISD = 0x00;
+	PORTBbits.RB0 = 0;
+                PORTD = 0x00;
+	T0CON = 0x03;
+	TMR0H = 0x6D;
+	TMR0L = 0x26;
+	INTCONbits.TMR0IF = 0;
+	INTCONbits.TMR0IE = 1;
+	INTCONbits.GIE = 1;
+	T0CONbits.TMR0ON = 1;
+	while(1);
+}
+#pragma code HIGH_INTERRUPT_VECTOR = 0x1008
+void high_ISR (void)
+{
+	_asm
+		goto timer_isr
+	_endasm
+}
+#pragma code
+///Timer ISR Function Prototype//
+#pragma interrupt timer_isr
+void timer_isr(void)
+{
+	TMR0H = 0X6D;
+	TMR0L = 0X26;
+	PORTBbits.RB0 = ~PORTBbits.RB0;
+                PORTD = ~PORTD;
+	INTCONbits.TMR0IF = 0;
+}
+
+--------------------------------------------------------------------
+ 6B] Square wave of 100 Hz (Timer0 interrupt)
+     Fosc=48MHz, N=16, F=100Hz, T=5ms
+     x = T/(4*N*Tosc) = 3759
+     Count = 65535 + 1 - x = 61777  ->  0xF151
+--------------------------------------------------------------------
+#include <p18f4550.h>
+extern void _startup (void);
+void timer_isr(void);
+#pragma code RESET_INTERRUPT_VECTOR = 0x1000
+void _reset (void)
+{
+	_asm
+    	             goto _startup
+	_endasm
+}
+#pragma code
+void main(void)
+{
+	ADCON1 = 0x0F;
+	INTCON2bits.RBPU=0;
+	TRISBbits.TRISB0 = 0;
+	PORTBbits.RB0 = 0;
+	T0CON = 0x03;
+	TMR0H = 0xF1;
+	TMR0L = 0x51;
+	INTCONbits.TMR0IF = 0;
+	INTCONbits.TMR0IE = 1;
+	INTCONbits.GIE = 1;
+	T0CONbits.TMR0ON = 1;
+	while(1);
+}
+#pragma code HIGH_INTERRUPT_VECTOR = 0x1008
+void high_ISR (void)
+{
+	_asm
+		goto timer_isr
+	_endasm
+}
+#pragma code
+///Timer ISR Function Prototype//
+#pragma interrupt timer_isr
+void timer_isr(void)
+{
+	TMR0H = 0XF1;
+	TMR0L = 0X51;
+	PORTBbits.RB0 = ~PORTBbits.RB0;
+	INTCONbits.TMR0IF = 0;
+}
+
+
+
+====================================================================
+ EXPERIMENT 7 : LCD INTERFACING (8-bit mode) WITH PIC 18F4550
+====================================================================
+
+--------------------------------------------------------------------
+ 7A] Display "Welcome" on line 1 and "To Embedded Lab" on line 2
+--------------------------------------------------------------------
+#include<p18f4550.h>
+#include "vector_relocate.h"
+#define LCD_DATA PORTD
+#define ctrl PORTE
+#define rs PORTEbits.RE0
+#define rw PORTEbits.RE1
+#define en PORTEbits.RE2
+void init_LCD(void);
+void LCD_command(unsigned char cmd);
+void LCD_data(unsigned char data);
+void LCD_write_string(static char *str);
+void msdelay (unsigned int time);
+
+void main( void )
+{
+	char var1[] = "Welcome";
+	char var2[ ] = "To Embedded Lab";
+	INTCON2bits.RBPU=0;
+	ADCON1=0x0F;
+        TRISD=0x00;
+        TRISE=0x00;
+	init_LCD();
+	msdelay(15);
+	LCD_write_string(var1);
+        msdelay(15);
+	LCD_command(0xC0);
+	LCD_write_string(var2);
+	while(1);
+}
+
+void init_LCD(void)
+{
+	LCD_command(0x38);
+	msdelay(15);
+	LCD_command(0x01);
+	msdelay(15);
+	LCD_command(0x0E);
+	msdelay(15);
+	LCD_command(0x80);
+	msdelay(15);
+}
+
+void LCD_command(unsigned char cmd)
+{
+	LCD_DATA = cmd;
+	rs = 0;
+	rw = 0;
+	en = 1;
+	msdelay(15);
+	en = 0;
+}
+
+void LCD_data(unsigned char data)
+{
+	LCD_DATA = data;
+	rs = 1;
+	rw = 0;
+	en = 1;
+	msdelay(15);
+	en = 0;
+}
+
+void LCD_write_string(static char *str)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		LCD_data(str[i]);
+		msdelay(15);
+		i++;
+	}
+}
+
+void msdelay(unsigned int t)
+{
+	unsigned int i,j;
+	for(i=0;i<t;i++)
+	{
+		for(j=0;j<710;j++);
+        }
+}
+
+--------------------------------------------------------------------
+ 7B] Display "Name of Student" on line 1 and "Seat No." on line 2
+     (only the two string lines differ from 7A)
+--------------------------------------------------------------------
+#include<p18f4550.h>
+#include "vector_relocate.h"
+#define LCD_DATA PORTD
+#define ctrl PORTE
+#define rs PORTEbits.RE0
+#define rw PORTEbits.RE1
+#define en PORTEbits.RE2
+void init_LCD(void);
+void LCD_command(unsigned char cmd);
+void LCD_data(unsigned char data);
+void LCD_write_string(static char *str);
+void msdelay (unsigned int time);
+
+void main( void )
+{
+	char var1[] = "Anurag Thorat";         //Your name
+	char var2[ ] = "T1900503321";          //Your seat number
+	INTCON2bits.RBPU=0;
+	ADCON1=0x0F;
+        TRISD=0x00;
+        TRISE=0x00;
+	init_LCD();
+	msdelay(15);
+	LCD_write_string(var1);
+        msdelay(15);
+	LCD_command(0xC0);
+	LCD_write_string(var2);
+	while(1);
+}
+
+void init_LCD(void)
+{
+	LCD_command(0x38);
+	msdelay(15);
+	LCD_command(0x01);
+	msdelay(15);
+	LCD_command(0x0E);
+	msdelay(15);
+	LCD_command(0x80);
+	msdelay(15);
+}
+
+void LCD_command(unsigned char cmd)
+{
+	LCD_DATA = cmd;
+	rs = 0;
+	rw = 0;
+	en = 1;
+	msdelay(15);
+	en = 0;
+}
+
+void LCD_data(unsigned char data)
+{
+	LCD_DATA = data;
+	rs = 1;
+	rw = 0;
+	en = 1;
+	msdelay(15);
+	en = 0;
+}
+
+void LCD_write_string(static char *str)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		LCD_data(str[i]);
+		msdelay(15);
+		i++;
+	}
+}
+
+void msdelay(unsigned int t)
+{
+	unsigned int i,j;
+	for(i=0;i<t;i++)
+	{
+		for(j=0;j<710;j++);
+        }
+}
+
+--------------------------------------------------------------------
+ 7C] Display "Microcontroller" on line 1 and "Embedded Lab" on line 2
+     (only the two string lines differ from 7A)
+--------------------------------------------------------------------
+#include<p18f4550.h>
+#include "vector_relocate.h"
+#define LCD_DATA PORTD
+#define ctrl PORTE
+#define rs PORTEbits.RE0
+#define rw PORTEbits.RE1
+#define en PORTEbits.RE2
+void init_LCD(void);
+void LCD_command(unsigned char cmd);
+void LCD_data(unsigned char data);
+void LCD_write_string(static char *str);
+void msdelay (unsigned int time);
+
+void main( void )
+{
+	char var1[] = "Microcontroller";
+	char var2[ ] = "Embedded Lab";
+	INTCON2bits.RBPU=0;
+	ADCON1=0x0F;
+        TRISD=0x00;
+        TRISE=0x00;
+	init_LCD();
+	msdelay(15);
+	LCD_write_string(var1);
+        msdelay(15);
+	LCD_command(0xC0);
+	LCD_write_string(var2);
+	while(1);
+}
+
+void init_LCD(void)
+{
+	LCD_command(0x38);
+	msdelay(15);
+	LCD_command(0x01);
+	msdelay(15);
+	LCD_command(0x0E);
+	msdelay(15);
+	LCD_command(0x80);
+	msdelay(15);
+}
+
+void LCD_command(unsigned char cmd)
+{
+	LCD_DATA = cmd;
+	rs = 0;
+	rw = 0;
+	en = 1;
+	msdelay(15);
+	en = 0;
+}
+
+void LCD_data(unsigned char data)
+{
+	LCD_DATA = data;
+	rs = 1;
+	rw = 0;
+	en = 1;
+	msdelay(15);
+	en = 0;
+}
+
+void LCD_write_string(static char *str)
+{
+	int i = 0;
+	while (str[i] != '\0')
+	{
+		LCD_data(str[i]);
+		msdelay(15);
+		i++;
+	}
+}
+
+void msdelay(unsigned int t)
+{
+	unsigned int i,j;
+	for(i=0;i<t;i++)
+	{
+		for(j=0;j<710;j++);
+        }
+}
+
+
+
+====================================================================
+ EXPERIMENT 8 : GENERATION OF PWM & INTERFACING DC MOTOR WITH PIC
+====================================================================
+ (PWM frequency = 4 KHz, PR2 = 187)
+ DC1B1 DC1B0 -> fractional value : 00=0, 01=0.25, 10=0.5, 11=0.75
+
+--------------------------------------------------------------------
+ 8A] Duty cycle 20% and 40%
+     20% of 187 = 37.4  -> 0x25
+     40% of 187 = 74.8  -> 0x4A
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void myMsDelay(unsigned int time);
+
+void main() {
+    TRISCbits.TRISC2 = 0;
+    TRISD = 0;
+    PR2 = 187;
+    CCP1CON = 0x0C;
+    T2CON = 0x07;
+    PORTDbits.RD5 = 1;
+    PORTDbits.RD6 = 0;
+
+    while (1) {
+        // For 20% Duty cycle
+        CCPR1L = 0x25;
+        CCP1CONbits.DC1B0 = 0;
+        CCP1CONbits.DC1B1 = 1;
+        myMsDelay(3000);
+
+        // For 40% Duty cycle
+        CCPR1L = 0x4A;
+        CCP1CONbits.DC1B0 = 1;
+        CCP1CONbits.DC1B1 = 1;
+        myMsDelay(3000);
+    }
+}
+
+void myMsDelay(unsigned int time)
+{
+    unsigned int i, j;
+    for (i = 0; i < time; i++)
+    {
+        for (j = 0; j < 710; j++);
+    }
+}
+
+--------------------------------------------------------------------
+ 8B] Duty cycle 60% and 80%
+     60% of 187 = 112.2 -> 0x70
+     80% of 187 = 149.6 -> 0x95
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void myMsDelay(unsigned int time);
+
+void main() {
+    TRISCbits.TRISC2 = 0;
+    TRISD = 0;
+    PR2 = 187;
+    CCP1CON = 0x0C;
+    T2CON = 0x07;
+    PORTDbits.RD5 = 1;
+    PORTDbits.RD6 = 0;
+
+    while (1) {
+        // For 60% Duty cycle
+        CCPR1L = 0x70;
+        CCP1CONbits.DC1B0 = 1;
+        CCP1CONbits.DC1B1 = 0;
+        myMsDelay(3000);
+
+        // For 80% Duty cycle
+        CCPR1L = 0x95;
+        CCP1CONbits.DC1B0 = 0;
+        CCP1CONbits.DC1B1 = 1;
+        myMsDelay(3000);
+    }
+}
+
+void myMsDelay(unsigned int time)
+{
+    unsigned int i, j;
+    for (i = 0; i < time; i++)
+    {
+        for (j = 0; j < 710; j++);
+    }
+}
+
+--------------------------------------------------------------------
+ 8C] Duty cycle 50% - motor clockwise & anticlockwise
+     50% of 187 = 93.5 -> 0x5D
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+void myMsDelay(unsigned int time);
+
+void main() {
+    TRISCbits.TRISC2 = 0;
+    TRISD = 0;
+    PR2 = 187;
+    CCP1CON = 0x0C;
+    T2CON = 0x07;
+    PORTDbits.RD5 = 1;
+    PORTDbits.RD6 = 0;
+
+    while (1)
+    {
+        // For 50% Duty cycle
+        CCPR1L = 0x5D;
+        CCP1CONbits.DC1B0 = 0;
+        CCP1CONbits.DC1B1 = 1;
+        myMsDelay(3000);
+    }
+}
+
+void myMsDelay(unsigned int time)
+{
+    unsigned int i, j;
+    for (i = 0; i < time; i++)
+    {
+        for (j = 0; j < 710; j++);
+    }
+}
+
+
+
+====================================================================
+ EXPERIMENT 9 : ON-CHIP ADC PROGRAMMING WITH PIC (0-5V on LCD)
+====================================================================
+
+--------------------------------------------------------------------
+ 9A] Read analog voltage 0-5V on internal ADC and display on LCD
+--------------------------------------------------------------------
+#include <p18f4550.h>
+#include "vector_relocate.h"
+#define LCD_DATA  PORTD               // LCD data port
+#define en PORTEbits.RE2       // enable signal
+#define rw PORTEbits.RE1       // read/write signal
+#define rs PORTEbits.RE0       // register select signal
+
+void LCD_cmd(unsigned char cmd);
+void myMsDelay(unsigned int time) {
+    unsigned int i, j;
+    for (i = 0; i < time; i++)
+   {
+        for (j = 0; j <710; j++);
+   }
+}
+
+void init_LCD(void) {
+    LCD_cmd(0x38);   // initialization of 16X2 LCD in 8bit mode
+    myMsDelay(15);
+
+    LCD_cmd(0x01);   // clear LCD
+    myMsDelay(15);
+
+    LCD_cmd(0x0E);   // cursor off
+    myMsDelay(15);
+
+    LCD_cmd(0x80);
+    myMsDelay(15);
+}
+
+// Function to pass command to the LCD
+void LCD_cmd(unsigned char cmd) {
+    LCD_DATA = cmd;
+    rs = 0;
+    rw = 0;
+    en = 1;
+    myMsDelay(15);
+    en = 0;
+    myMsDelay(15);
+}
+
+// Function to write data to the LCD
+void LCD_write(unsigned char data) {
+    LCD_DATA = data;
+    rs = 1;
+    rw = 0;
+    en = 1;
+    myMsDelay(15);
+    en = 0;
+    myMsDelay(15);
+}
+
+void main(void) {
+    unsigned int val[4], ADC_Result = 0, var;
+    unsigned char i, str[] = "Result:";
+
+    TRISD = 0x00;    // Configuring PORTD as output
+    TRISE = 0;
+    TRISA = 0xFF;
+    init_LCD();
+
+    // ADC Initialization
+    ADCON1 = 0x0C;
+    ADCON2 = 0x8E;
+    ADCON0 = 0x09;  // Turn ON ADC module
+
+    LCD_cmd(0x80);
+    for (i = 0; str[i] != '\0'; i++) {
+        LCD_write(str[i]);
+        myMsDelay(200);
+    }
+
+    while (1) {
+        ADCON0bits.GO = 1;
+        while (ADCON0bits.GO == 1);
+        var = ((unsigned int)ADRESH) << 8;
+        ADC_Result = var + ADRESL;
+
+        for (i = 0; i < 4; i++) {
+            val[i] = ADC_Result % 0x0A;
+            val[i] = val[i] + 0x30;
+            ADC_Result = ADC_Result / 0x0A;
+        }
+
+        LCD_cmd(0x87);     // LCD command to set DDRAM address
+        LCD_write(val[3]);
+        LCD_write(val[2]);
+        LCD_write(val[1]);
+        LCD_write(val[0]);
+    }
+}
+
+====================================================================
+ END OF FILE
+====================================================================
